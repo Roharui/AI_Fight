@@ -19,7 +19,7 @@ function createArray(size) {
 
 function User(id, loc){
     this.id = id
-    this.cur = 1
+    this.cur = getRandomInt(1, 4)
     this.loc = loc
     this.hp = 20
 }
@@ -37,7 +37,7 @@ module.exports = function(app) {
 
         this.users.forEach(u => {
             let {x , y} = u.loc
-            s[y][x] = 1
+            s[y][x] = u.cur
         })
 
         return s
@@ -54,13 +54,17 @@ module.exports = function(app) {
         let x = 0;
         let y = 0;
 
-        do {
-            x = getRandomInt(0, stage_size[1])
-            y = getRandomInt(0, stage_size[0])
-        }while(s[y][x] != 0)
+        try{
+            do {
+                x = getRandomInt(0, stage_size[1] - 1)
+                y = getRandomInt(0, stage_size[0] - 1)
+            }while(s[y][x] != 0)
+        } catch(e) {
+            console.log({x : x, y : y})
+        }
+
 
         return {x : x, y : y}
-
     }
     
     app.get('/join', (req, res) => {
@@ -68,7 +72,7 @@ module.exports = function(app) {
 
         let loc = this.getRandomPlace()
 
-        this.user.push(new User(id, loc))
+        this.users.push(new User(this.user_count, loc))
 
         res.send({data : data , stage : this.stageShow(), loc : loc})
     })
