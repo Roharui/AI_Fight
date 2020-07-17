@@ -5,8 +5,15 @@ var ctx = null
 
 const Env = {
     stage : null,
-    id : null,
+    id : 0,
+    ata : null,
+    clear(){
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    },
     reset() {
+        this.clear()
+        if(this.ata == null || this.ata == undefined) {}
+        else { this.drawAta(this.ata) }
         this.stage.forEach((y, i) => {
             y.forEach((x, j) => {
                 if(x > 0){
@@ -20,8 +27,6 @@ const Env = {
 
                     ctx.beginPath();
                     ctx.moveTo(centerX, centerY);
-
-                    console.log(x)
 
                     if(x == 1){
                         ctx.lineTo(centerX, centerY - 25);
@@ -43,10 +48,10 @@ const Env = {
     join(){
         $.ajax({
             url : '/join',
-            type: 'get',
+            type: 'post',
             success : function(data){
                 Env.stage = data.stage
-                Env.id = data.data.id
+                Env.id = data.id
 
                 Env.reset()
             }
@@ -66,6 +71,35 @@ const Env = {
             ctx.lineTo(i * 50, 500);
             ctx.stroke();
         }
+    },
+    doAction(action){
+        $.ajax({
+            url : '/action',
+            type: 'POST',
+            dataType: "json",
+            data : {
+                id : this.id,
+                action : action
+            },
+            success : function(data){
+                console.log(data)
+                Env.stage = data.stage
+                Env.id = data.id
+                Env.ata = data.attack_area
+
+                Env.reset()
+            }
+        })
+    },
+    drawAta(ata){
+        ctx.fillStyle = "green"
+        ata.forEach((y, i) => {
+            y.forEach((x, j) => {
+                if(x != null){
+                    ctx.fillRect(j * 50, i * 50, 50, 50)
+                }
+            })
+        })
     }
 }
 
