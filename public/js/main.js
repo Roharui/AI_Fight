@@ -4,17 +4,15 @@ var canvas = null
 var ctx = null
 
 const Env = {
-    stage : null,
-    id : 0,
-    ata : null,
     clear(){
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     },
-    reset() {
+    reset(stage, ata) {
         this.clear()
-        if(this.ata == null || this.ata == undefined) {}
-        else { this.drawAta(this.ata) }
-        this.stage.forEach((y, i) => {
+        console.log(ata)
+        if(ata == null || ata == undefined) {}
+        else { this.drawAta(ata) }
+        stage.forEach((y, i) => {
             y.forEach((x, j) => {
                 if(x > 0){
 
@@ -50,10 +48,7 @@ const Env = {
             url : '/join',
             type: 'post',
             success : function(data){
-                Env.stage = data.stage
-                Env.id = data.id
-
-                Env.reset()
+                Env.reset(data.stage, null)
             }
         })
     },
@@ -72,22 +67,17 @@ const Env = {
             ctx.stroke();
         }
     },
-    doAction(action){
+    doAction(id, action){
         $.ajax({
             url : '/action',
             type: 'POST',
             dataType: "json",
             data : {
-                id : this.id,
+                id : id,
                 action : action
             },
             success : function(data){
-                console.log(data)
-                Env.stage = data.stage
-                Env.id = data.id
-                Env.ata = data.attack_area
-
-                Env.reset()
+                Env.reset(data.stage, data.attack_area)
             }
         })
     },
@@ -108,6 +98,11 @@ $(document).ready(function() {
 
     ctx = canvas.getContext("2d");
 
-    Env.join()
-})
+    //Env.join()
 
+    const socket = io()
+
+    socket.on('stage', (data) => {
+        Env.reset(data.stage, data.attack_area)
+    })
+})

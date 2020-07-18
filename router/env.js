@@ -65,6 +65,13 @@ function getRandomPlace() {
     return {x : x, y : y}
 }
 
+function clear(){
+    users = []
+    stage = createArray(stage_size)
+    ata = createArray(stage_size)
+    user_count = 0
+}
+
 function User(id, loc){
     this.id = id
     this.cur = getRandomInt(1, 4)
@@ -95,15 +102,15 @@ function User(id, loc){
             this.loc.x -= 1
         }
 
+        if(this.loc.x > 9 || this.loc.y > 9 || this.loc.x < 0 || this.loc.y < 0){
+            this.hp = 0
+            return -10
+        }
+
         if(stage[this.loc.y][this.loc.x] != null){
             this.loc = ori_loc
             stage[this.loc.y][this.loc.x] = this
             return -3
-        }
-
-        if(this.loc.x > 9 || this.loc.y > 9 || this.loc.x < 0 || this.loc.y < 0){
-            this.hp = 0
-            return -10
         }
 
         stage[this.loc.y][this.loc.x] = this
@@ -161,7 +168,7 @@ function User(id, loc){
     }
 }
 
-module.exports = function(app) {
+module.exports = function(app, io) {
     
     app.post('/join', (req, res) => {
         let id = user_count++
@@ -185,7 +192,14 @@ module.exports = function(app) {
 
         let score = x.action(action)
 
+        io.emit('stage',  {stage : stageShow(), attack_area : ata})
+
         res.send({id : id , stage : stageShow(), attack_area : ata, loc : x.loc, score : score})
+    })
+
+    app.post('/clear', (req, res) => {
+        clear()
+        res.send({})
     })
 
 }

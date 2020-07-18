@@ -17,6 +17,6 @@ app.use(express.static(__dirname + '/public'))
 
 const main = require('./router/main')(app)
 
-const evn = require('./router/env')(app)
+const evn = require('./router/env')(app, io)
 
 http.listen(port, () => {console.log(`Server listening at : ${port}`)})
