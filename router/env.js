@@ -104,6 +104,8 @@ function User(id, loc){
 
         if(this.loc.x > 9 || this.loc.y > 9 || this.loc.x < 0 || this.loc.y < 0){
             this.hp = 0
+            this.loc = ori_loc
+            stage[this.loc.y][this.loc.x] = this
             return -10
         }
 
@@ -164,7 +166,7 @@ function User(id, loc){
                 }
             })
         }
-        return count
+        return count == 0?-1:count
     }
 }
 

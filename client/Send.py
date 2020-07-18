@@ -32,7 +32,7 @@ class Sender :
         self.join()
 
         for i in range(100):
-            self.action(i%2, randint(0, 6))
+            self.action(i%2, randint(0, 5))
             sleep(0.1)
             
 
