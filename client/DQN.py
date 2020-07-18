@@ -1,7 +1,7 @@
 
 from tensorflow.keras import Sequential
-from tensorflow.keras.layers import Dense, Input, Conv2D, MaxPool2D, BatchNormalization, Dropout, Flatten
-from tensorflow.keras.models import clone_model
+from tensorflow.keras.layers import Dense, Input, Conv2D, MaxPool2D, BatchNormalization, Dropout, Flatten, Cropping1D
+from tensorflow.keras.models import clone_model, Model
 
 import numpy as np
 
@@ -39,7 +39,10 @@ class DQN_CORE:
 
     def getModel(self):
         result = Sequential()
-        result.add(Input(shape=(MODEL_INPUT, MODEL_INPUT, STATE_ELE)))
+
+        sip = Input(shape=(MODEL_INPUT, MODEL_INPUT, STATE_ELE))
+
+        result.add(sip)
         result.add(Conv2D(16, (2,2), padding='same', activation='relu'))
         result.add(BatchNormalization())
 
@@ -53,9 +56,9 @@ class DQN_CORE:
         result.add(Dropout(0.25))
         result.add(Dense(ACTION))
 
-        return result
-        
-        
+        return sip, result
+
+    
 
 
 if __name__ == "__main__":
