@@ -9,7 +9,7 @@ const Env = {
     },
     reset(stage, ata) {
         this.clear()
-        console.log(ata)
+        console.log(stage)
         if(ata == null || ata == undefined) {}
         else { this.drawAta(ata) }
         stage.forEach((y, i) => {

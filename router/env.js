@@ -76,17 +76,16 @@ function User(id, loc){
     this.id = id
     this.cur = getRandomInt(1, 4)
     this.loc = loc
-    this.hp = 3
+    this.score = 0
 
     this.action = (action) => {
         ata = createArray(stage_size)
         if(action == 0)
-            return this.move()
-        if(action == 5)
-            return this.attack()
-        
-        this.cur = action
-        return 0
+            this.move()
+        else if(action == 5)
+            this.attack()
+        else
+            this.cur = action
     }
 
     this.move = () => {
@@ -103,20 +102,18 @@ function User(id, loc){
         }
 
         if(this.loc.x > 9 || this.loc.y > 9 || this.loc.x < 0 || this.loc.y < 0){
-            this.hp = 0
             this.loc = ori_loc
             stage[this.loc.y][this.loc.x] = this
-            return -10
+            this.score -= 10
         }
 
         if(stage[this.loc.y][this.loc.x] != null){
             this.loc = ori_loc
             stage[this.loc.y][this.loc.x] = this
-            return -3
+            this.score -= 3
         }
 
         stage[this.loc.y][this.loc.x] = this
-        return 0
     }
 
     this.attack = () => {
@@ -128,7 +125,7 @@ function User(id, loc){
                 ata[i][this.loc.x] = 1
 
                 if (x[this.loc.x] != null) {
-                    x[this.loc.x].hp -= 1
+                    x[this.loc.x].score -= 2
                     count += 1
                 }
             })
@@ -139,7 +136,7 @@ function User(id, loc){
                 ata[this.loc.y][i] = 1
 
                 if(x != null){
-                    x.hp -= 1
+                    x.score -= 2
                     count += 1
                 }
             })
@@ -150,7 +147,7 @@ function User(id, loc){
                 ata[i][this.loc.x] = 1
 
                 if (x[this.loc.x] != null) {
-                    x[this.loc.x].hp -= 1
+                    x[this.loc.x].score -= 2
                     count += 1
                 }
             })
@@ -161,12 +158,12 @@ function User(id, loc){
                 ata[this.loc.y][i] = 1
 
                 if(x != null){
-                    x.hp -= 1
+                    x.score -= 2
                     count += 1
                 }
             })
         }
-        return count == 0?-1:count
+        this.score += count
     }
 }
 
@@ -183,6 +180,8 @@ module.exports = function(app, io) {
 
         stage[loc.y][loc.x] = user
 
+        io.emit('stage',  {stage : stageShow(), attack_area : ata, users : users})
+
         res.send({id : id , stage : stageShow(), loc : loc})
     })
 
@@ -192,11 +191,21 @@ module.exports = function(app, io) {
 
         let x = users.find(x => x.id == id)
 
-        let score = x.action(action)
+        x.action(action)
 
-        io.emit('stage',  {stage : stageShow(), attack_area : ata})
+        io.emit('stage',  {stage : stageShow(), attack_area : ata, users : users})
 
-        res.send({id : id , stage : stageShow(), attack_area : ata, loc : x.loc, score : score})
+        res.send({id : id , stage : stageShow(), attack_area : ata, loc : x.loc})
+    })
+
+    app.post('/score', (req, res) => {
+        let data = users.map((x, i) => {
+            let s = x.score
+            x.score = 0
+            return s
+        })
+
+        res.send({score : data})
     })
 
     app.post('/clear', (req, res) => {

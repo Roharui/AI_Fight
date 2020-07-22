@@ -22,6 +22,11 @@ class Sender :
 
         return j
 
+    def getScore(self):
+        data = post(base_url + "score").content
+
+        return json.loads(data)
+
     def clear(self):
         post(base_url + "clear")
 
@@ -32,10 +37,27 @@ class Sender :
         self.join()
 
         for i in range(100):
-            self.action(i%2, randint(0, 5))
-            sleep(0.1)
-            
+            r = randint(0, 5)
+            self.action(i%2, r)
+
+            print(f"{i%2} : {r}")
+
+            if i%2 == 0:
+                print()
+                print(self.getScore())
+                print()
+
+            input()
+
+    def init(self, user):
+        self.clear()
+        for _ in range(user - 1):
+            self.join()
+        j = self.join()
+
+        return j
 
 if __name__ == "__main__":
     x = Sender()
-    x.testing()
+    x.join()
+    print(x.action(0, 1))
