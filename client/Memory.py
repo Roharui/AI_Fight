@@ -7,28 +7,38 @@ from random import randint
 
 from config import *
 
-def state_with_loc(state, loc):
-    bs = int(MODEL_INPUT / 2)
-    (x, y) = (loc['x'] + bs, loc['y'] + bs)
-    s = np.ones((ENV_SIZE + bs * 2, 
-                 ENV_SIZE + bs * 2)) * 5
-    s[bs:ENV_SIZE + bs, bs:ENV_SIZE + bs] = state
-    return s[y-bs:y+bs+1, x-bs:x+bs+1]
-
 class UserMemory:
-    def __init__(self, maxlen):
-        self.memory = deque(maxlen=maxlen+1)
-        self.actions = deque(maxlen=maxlen)
-        self.rewards = deque(maxlen=maxlen)
 
-    def push(self, state, loc):
-        state = state_with_loc(state, loc)
-        self.memory.append(state)
-    
-    def get(self):
-        r = randint(0, len(self.memory) - 1)
-        return (self.memory[r], self.actions[r], 
-                self.rewards[r], self.memory[r+1])
-    
-    def top(self):
-        return self.memory[-1]
+    class MemoryData:
+        def __init__(self, state, action, reward):
+            self.state = state
+            self.action = action
+            self.reward = reward
+
+    def __init__(self, maxlen):
+        self.memory = [deque(maxlen=maxlen+1) for _ in range(USER_COUNT)]
+        self.cicle = 0
+
+    def push(self, states, actions, rewards):
+
+        for state, action, reward in zip(states, actions, rewards):
+            data = self.MemoryData(state, action, reward)
+            self.memory[self.cicle].append(data)
+
+            self.cicle += 1
+            self.cicle = self.cicle % USER_COUNT
+
+    def samples(self, count):
+        result = []
+        for i in self.memory:
+            for _ in range(count):
+                mx = len(i) - 1
+                x = randint(0, mx)
+
+                t1 = i[x]
+                t2 = i[x + 1]
+
+                result.append(t1.state, t1.action, t1.reward, t2.state)
+
+        return result
+

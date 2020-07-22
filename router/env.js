@@ -3,7 +3,7 @@ const fs = require('fs')
 
 const config = JSON.parse(fs.readFileSync('./config/config.json'))
 
-const stage_size = config.stage_size
+const state_size = config.state_size
 
 function getRandomInt(min, max) { 
     return Math.floor(Math.random() * (max - min + 1)) + min; 
@@ -21,12 +21,12 @@ function createArray(size) {
     return result
 }
 
-let stage = createArray(stage_size)
+let state = createArray(state_size)
 
-let ata = createArray(stage_size)
+let ata = createArray(state_size)
 
-function stageShow(){
-    let s = stage.map(x => {
+function stateShow(){
+    let s = state.map(x => {
         return x.map(y => {
             return y == null? 0 : y.cur
         })
@@ -48,15 +48,15 @@ let users = []
 
 function getRandomPlace() {
 
-    let s = stageShow()
+    let s = stateShow()
 
     let x = 0;
     let y = 0;
 
     try{
         do {
-            x = getRandomInt(0, stage_size[1] - 1)
-            y = getRandomInt(0, stage_size[0] - 1)
+            x = getRandomInt(0, state_size[1] - 1)
+            y = getRandomInt(0, state_size[0] - 1)
         }while(s[y][x] != 0)
     } catch(e) {
         console.log({x : x, y : y})
@@ -67,8 +67,8 @@ function getRandomPlace() {
 
 function clear(){
     users = []
-    stage = createArray(stage_size)
-    ata = createArray(stage_size)
+    state = createArray(state_size)
+    ata = createArray(state_size)
     user_count = 0
 }
 
@@ -79,7 +79,7 @@ function User(id, loc){
     this.score = 0
 
     this.action = (action) => {
-        ata = createArray(stage_size)
+        ata = createArray(state_size)
         if(action == 0)
             this.move()
         else if(action == 5)
@@ -89,7 +89,7 @@ function User(id, loc){
     }
 
     this.move = () => {
-        stage[this.loc.y][this.loc.x] = null
+        state[this.loc.y][this.loc.x] = null
         let ori_loc = JSON.parse(JSON.stringify(this.loc))
         if(this.cur == 1){
             this.loc.y -= 1
@@ -103,23 +103,21 @@ function User(id, loc){
 
         if(this.loc.x > 9 || this.loc.y > 9 || this.loc.x < 0 || this.loc.y < 0){
             this.loc = ori_loc
-            stage[this.loc.y][this.loc.x] = this
+            state[this.loc.y][this.loc.x] = this
             this.score -= 10
-        }
-
-        if(stage[this.loc.y][this.loc.x] != null){
+        }else if(state[this.loc.y][this.loc.x] != null){
             this.loc = ori_loc
-            stage[this.loc.y][this.loc.x] = this
+            state[this.loc.y][this.loc.x] = this
             this.score -= 3
+        } else{
+            state[this.loc.y][this.loc.x] = this
         }
-
-        stage[this.loc.y][this.loc.x] = this
     }
 
     this.attack = () => {
         let count = 0
         if(this.cur == 1){
-            stage.forEach((x, i) => {
+            state.forEach((x, i) => {
                 if(i >= this.loc.y) return
 
                 ata[i][this.loc.x] = 1
@@ -130,7 +128,7 @@ function User(id, loc){
                 }
             })
         } else if (this.cur == 2) {
-            stage[this.loc.y].forEach((x, i) => {
+            state[this.loc.y].forEach((x, i) => {
                 if(i <= this.loc.x) return
 
                 ata[this.loc.y][i] = 1
@@ -141,7 +139,7 @@ function User(id, loc){
                 }
             })
         } else if (this.cur == 3) {
-            stage.forEach((x, i) => {
+            state.forEach((x, i) => {
                 if(i <= this.loc.y) return
 
                 ata[i][this.loc.x] = 1
@@ -152,7 +150,7 @@ function User(id, loc){
                 }
             })
         } else if (this.cur == 4) {
-            stage[this.loc.y].forEach((x, i) => {
+            state[this.loc.y].forEach((x, i) => {
                 if(i >= this.loc.x) return
 
                 ata[this.loc.y][i] = 1
@@ -178,11 +176,11 @@ module.exports = function(app, io) {
 
         users.push(user)
 
-        stage[loc.y][loc.x] = user
+        state[loc.y][loc.x] = user
 
-        io.emit('stage',  {stage : stageShow(), attack_area : ata, users : users})
+        io.emit('state',  {state : stateShow(), attack_area : ata, users : users})
 
-        res.send({id : id , stage : stageShow(), loc : loc})
+        res.send({id : id , state : stateShow(), loc : loc})
     })
 
     app.post('/action', (req, res) => {
@@ -193,9 +191,9 @@ module.exports = function(app, io) {
 
         x.action(action)
 
-        io.emit('stage',  {stage : stageShow(), attack_area : ata, users : users})
+        io.emit('state',  {state : stateShow(), attack_area : ata, users : users})
 
-        res.send({id : id , stage : stageShow(), attack_area : ata, loc : x.loc})
+        res.send({id : id , state : stateShow(), attack_area : ata, loc : x.loc})
     })
 
     app.post('/score', (req, res) => {

@@ -4,8 +4,10 @@ from tensorflow.keras.layers import Dense, Input, Conv2D, MaxPool2D, BatchNormal
 from tensorflow.keras.models import clone_model, Model
 
 from Send import Sender
-from Memory import UserMemory, state_with_loc
+from Memory import UserMemory
 from config import *
+
+from random import random, randint
 
 import numpy as np
 
@@ -49,27 +51,33 @@ class DQN_CORE:
     def action(self):
         state = None
         if self.clear:
-            h = self.sender.init(USER_COUNT)
-            self.memory[0].push(h['stage'], h['loc'])
-            state = self.memory[0].top()
+            state = self.sender.init(USER_COUNT)
             self.clear = False
         else:
             state = self.memory[-1].top()
-        
+
+        states = []
+        actions = []
+
         for i in range(USER_COUNT):
-            _i = (i + 1) % USER_COUNT
-            action = self.model.predict(state[np.newaxis])[0].argmax()
-            self.memory[i].actions.append(action)
+            states.append(state)
+            action = self.get_Action(state)
+            actions.append(action)
+            state = self.sender.action(i, action)
 
-            h = self.sender.action(i, action)
+        rewards = self.sender.getScore()
 
-            self.memory[_i].push(h['stage'], h['loc'])
+    def get_Action(self, state):
+        if random() > EPSILON:
+            return self.model.predict(state[np.newaxis])[0].argmax()
+        return randint(0, ACTION-1)
 
-        [self.memory[num].rewards.append(i) 
-            for num, i in enumerate(self.sender.getScore()['score'])]
-
-        
+    def run_step(self):
+        for i in range(STEP):
+            self.action()
 
 if __name__ == "__main__":
     x = DQN_CORE(300)
-    x.action()
+    x.run_step()
+
+    x.memory[0].get()

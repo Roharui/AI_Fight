@@ -7,12 +7,12 @@ const Env = {
     clear(){
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     },
-    reset(stage, ata) {
+    reset(state, ata) {
         this.clear()
-        console.log(stage)
+        console.log(state)
         if(ata == null || ata == undefined) {}
         else { this.drawAta(ata) }
-        stage.forEach((y, i) => {
+        state.forEach((y, i) => {
             y.forEach((x, j) => {
                 if(x > 0){
 
@@ -48,7 +48,7 @@ const Env = {
             url : '/join',
             type: 'post',
             success : function(data){
-                Env.reset(data.stage, null)
+                Env.reset(data.state, null)
             }
         })
     },
@@ -77,7 +77,7 @@ const Env = {
                 action : action
             },
             success : function(data){
-                Env.reset(data.stage, data.attack_area)
+                Env.reset(data.state, data.attack_area)
             }
         })
     },
@@ -102,7 +102,7 @@ $(document).ready(function() {
 
     const socket = io()
 
-    socket.on('stage', (data) => {
-        Env.reset(data.stage, data.attack_area)
+    socket.on('state', (data) => {
+        Env.reset(data.state, data.attack_area)
     })
 })
