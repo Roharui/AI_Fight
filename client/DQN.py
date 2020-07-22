@@ -80,11 +80,29 @@ class DQN_CORE:
         for i in range(STEP):
             self.action()
 
-    
+        print(self.memory.length())
+
+        self.train()
+
+    def train(self):
+        
+        train_set = self.memory.samples(TRAIN_SIZE)
+        state = np.stack([x['state'] for x in train_set])
+        model_Y = self.model.predict(state)
+
+        n_state = np.stack([x['n_state'] for x in train_set])
+        target_Y = self.target_model.predict(n_state)
+
+        print(target_Y[:5])
+        print(model_Y[:5])
+
+        for num, i in enumerate(train_set):
+            model_Y[num, i['action']] = i['reward'] + r * target_Y[num].max()
+        
+        self.model.fit(state, model_Y, batch_size=BATCH_SIZE)
+
+
 
 if __name__ == "__main__":
     x = DQN_CORE(300)
     x.run_step()
-
-    xx = x.memory.samples(1)
-    print(xx)

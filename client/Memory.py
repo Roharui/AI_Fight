@@ -33,15 +33,24 @@ class UserMemory:
 
     def samples(self, count):
         result = []
+        for _ in range(count):
+            i = self.memory[randint(0, USER_COUNT - 1)]
+            mx = len(i) - 2
+            x = randint(0, mx)
+
+            t1 = i[x]
+            t2 = i[x + 1]
+
+            result.append({
+                "state" : t1.state, "action" : t1.action,
+                "reward" : t1.reward, "n_state" : t2.state
+            })
+
+        return result
+
+    def length(self):
+        result = 0
         for i in self.memory:
-            for _ in range(count):
-                mx = len(i) - 1
-                x = randint(0, mx)
-
-                t1 = i[x]
-                t2 = i[x + 1]
-
-                result.append((t1.state, t1.action, t1.reward, t2.state))
-
+            result += len(i)
         return result
 
