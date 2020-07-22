@@ -15,14 +15,16 @@ class DQN_CORE:
 
     def __init__(self, episode):
         self.episode = episode
-        self.memory = [UserMemory(int(MEMORY_SIZE / USER_COUNT))
-                        for _ in range(USER_COUNT)]
+        self.memory = UserMemory(MEMORY_SIZE)
         self.sender = Sender()
         
         self.model = self.getModel()
         self.target_model = clone_model(self.model)
 
         self.clear = True
+
+    def update_model(self):
+        self.target_model = clone_model(self.model)
 
     def getModel(self):
         result = Sequential()
@@ -54,7 +56,7 @@ class DQN_CORE:
             state = self.sender.init(USER_COUNT)
             self.clear = False
         else:
-            state = self.memory[-1].top()
+            state = self.memory.top()
 
         states = []
         actions = []
@@ -67,17 +69,22 @@ class DQN_CORE:
 
         rewards = self.sender.getScore()
 
+        self.memory.push(states, actions, rewards)
+
     def get_Action(self, state):
-        if random() > EPSILON:
-            return self.model.predict(state[np.newaxis])[0].argmax()
+        # if random() > EPSILON:
+        #     return self.model.predict(state[np.newaxis])[0].argmax()
         return randint(0, ACTION-1)
 
     def run_step(self):
         for i in range(STEP):
             self.action()
 
+    
+
 if __name__ == "__main__":
     x = DQN_CORE(300)
     x.run_step()
 
-    x.memory[0].get()
+    xx = x.memory.samples(1)
+    print(xx)

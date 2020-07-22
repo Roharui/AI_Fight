@@ -16,7 +16,7 @@ class UserMemory:
             self.reward = reward
 
     def __init__(self, maxlen):
-        self.memory = [deque(maxlen=maxlen+1) for _ in range(USER_COUNT)]
+        self.memory = [deque(maxlen=maxlen) for _ in range(USER_COUNT)]
         self.cicle = 0
 
     def push(self, states, actions, rewards):
@@ -28,6 +28,9 @@ class UserMemory:
             self.cicle += 1
             self.cicle = self.cicle % USER_COUNT
 
+    def top(self):
+        return self.memory[self.cicle][-1].state
+
     def samples(self, count):
         result = []
         for i in self.memory:
@@ -38,7 +41,7 @@ class UserMemory:
                 t1 = i[x]
                 t2 = i[x + 1]
 
-                result.append(t1.state, t1.action, t1.reward, t2.state)
+                result.append((t1.state, t1.action, t1.reward, t2.state))
 
         return result
 

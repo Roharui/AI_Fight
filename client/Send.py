@@ -28,6 +28,7 @@ class Sender :
 
         j = json.loads(data)
 
+        
         return state_with_loc(j)
 
     def action(self, xid, x):
