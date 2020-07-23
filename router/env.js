@@ -86,6 +86,7 @@ function User(id, loc){
             this.attack()
         else
             this.cur = action
+            this.move()
     }
 
     this.move = () => {
@@ -104,11 +105,11 @@ function User(id, loc){
         if(this.loc.x > 9 || this.loc.y > 9 || this.loc.x < 0 || this.loc.y < 0){
             this.loc = ori_loc
             state[this.loc.y][this.loc.x] = this
-            this.score -= 10
+            this.score -= 3
         }else if(state[this.loc.y][this.loc.x] != null){
             this.loc = ori_loc
             state[this.loc.y][this.loc.x] = this
-            this.score -= 3
+            this.score -= 1
         } else{
             state[this.loc.y][this.loc.x] = this
         }
@@ -123,7 +124,7 @@ function User(id, loc){
                 ata[i][this.loc.x] = 1
 
                 if (x[this.loc.x] != null) {
-                    x[this.loc.x].score -= 2
+                    x[this.loc.x].score -= 1
                     count += 1
                 }
             })
@@ -134,7 +135,7 @@ function User(id, loc){
                 ata[this.loc.y][i] = 1
 
                 if(x != null){
-                    x.score -= 2
+                    x.score -= 1
                     count += 1
                 }
             })
@@ -145,7 +146,7 @@ function User(id, loc){
                 ata[i][this.loc.x] = 1
 
                 if (x[this.loc.x] != null) {
-                    x[this.loc.x].score -= 2
+                    x[this.loc.x].score -= 1
                     count += 1
                 }
             })
@@ -156,7 +157,7 @@ function User(id, loc){
                 ata[this.loc.y][i] = 1
 
                 if(x != null){
-                    x.score -= 2
+                    x.score -= 1
                     count += 1
                 }
             })

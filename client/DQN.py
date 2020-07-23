@@ -22,9 +22,16 @@ class DQN_CORE:
         self.target_model = clone_model(self.model)
 
         self.clear = True
+        self.epsilon = EPSILON
 
     def update_model(self):
         self.target_model = clone_model(self.model)
+
+    def save_model_json(self):
+        open('model/AI_FIGHT.json', 'w').write(self.model.to_json())
+
+    def save_model(self, number):
+        self.model.save_weights(f'model/AI_FIGHT_{number}.h5')
 
     def getModel(self):
         result = Sequential()
@@ -72,17 +79,14 @@ class DQN_CORE:
         self.memory.push(states, actions, rewards)
 
     def get_Action(self, state):
-        # if random() > EPSILON:
-        #     return self.model.predict(state[np.newaxis])[0].argmax()
+        if random() > self.epsilon:
+            return self.model.predict(state[np.newaxis])[0].argmax()
         return randint(0, ACTION-1)
 
     def run_step(self):
+        self.clear = True
         for i in range(STEP):
             self.action()
-
-        print(self.memory.length())
-
-        self.train()
 
     def train(self):
         
@@ -93,16 +97,37 @@ class DQN_CORE:
         n_state = np.stack([x['n_state'] for x in train_set])
         target_Y = self.target_model.predict(n_state)
 
-        print(target_Y[:5])
-        print(model_Y[:5])
-
         for num, i in enumerate(train_set):
             model_Y[num, i['action']] = i['reward'] + r * target_Y[num].max()
         
         self.model.fit(state, model_Y, batch_size=BATCH_SIZE)
 
+    def run(self):
+        for ep in range(EPISODE):
 
+            print(f'{ep}. 에피소드 시작 -- ')
+
+            print(f'{ep} -- 자율 행동.')
+            self.run_step()
+
+            if self.memory.length() > MIN_MEMORY:
+                print(f'{ep} -- 학습 시작.')
+                self.train()
+            else:
+                print(f'{ep} -- 학습을 위한 데이터 셋 부족.')
+                print(f'{ep} -- {self.memory.length()}.')
+            
+            self.epsilon = max([self.epsilon - EP_STEP, MIN_EPSILON])
+            print(f'{ep} -- 앱실론 : {self.epsilon}.')
+
+            if ep%10 == 0:
+                print(f'{ep} -- 모델 갱신.')
+                self.update_model()
+
+            if ep%50 == 0:
+                print(f'{ep} -- 모델 저장.')
+                self.save_model(ep)
 
 if __name__ == "__main__":
     x = DQN_CORE(300)
-    x.run_step()
+    x.run()
