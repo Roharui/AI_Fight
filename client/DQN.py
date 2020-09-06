@@ -1,7 +1,10 @@
 
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dense, Input, Conv2D, MaxPool2D, BatchNormalization, Dropout, Flatten, Cropping1D
-from tensorflow.keras.models import clone_model, Model
+from tensorflow.keras.models import clone_model, Model, model_from_json
 
 from Send import Sender
 from Memory import UserMemory
@@ -24,6 +27,8 @@ class DQN_CORE:
         self.clear = True
         self.epsilon = EPSILON
 
+        self.save_model_json()
+
     def update_model(self):
         self.target_model = clone_model(self.model)
 
@@ -33,19 +38,24 @@ class DQN_CORE:
     def save_model(self, number):
         self.model.save_weights(f'model/AI_FIGHT_{number}.h5')
 
+    def load_model(self, json, h5):
+        j = open(json, "r").read()
+        self.model = model_from_json(j)
+        self.model.load_weights(h5)
+
     def getModel(self):
         result = Sequential()
 
         sip = Input(shape=(MODEL_INPUT, MODEL_INPUT, STATE_ELE))
 
         result.add(sip)
-        result.add(Conv2D(16, (3,3), padding='same', activation='relu'))
-        result.add(BatchNormalization())
+        # result.add(Conv2D(16, (3,3), padding='same', activation='relu'))
+        # result.add(BatchNormalization())
 
-        result.add(MaxPool2D((2,2)))
+        # result.add(MaxPool2D((2,2)))
 
-        result.add(Conv2D(16, (3,3), padding='same', activation='relu'))
-        result.add(BatchNormalization())
+        # result.add(Conv2D(16, (3,3), padding='same', activation='relu'))
+        # result.add(BatchNormalization())
 
         result.add(Flatten())
         result.add(Dropout(0.25))
@@ -124,10 +134,21 @@ class DQN_CORE:
                 print(f'{ep} -- 모델 갱신.')
                 self.update_model()
 
-            if ep%50 == 0:
+            if ep%15 == 0:
                 print(f'{ep} -- 모델 저장.')
                 self.save_model(ep)
+    
+    def test(self):
+        self.load_model('model/AI_FIGHT.json', 'model/AI_FIGHT_60.h5')
+        n = 1
+        self.epsilon = 0
+        while True:
+            n += 1
+            self.action()
+            if input(f"{n} turn --") == 'q':
+                break
 
 if __name__ == "__main__":
     x = DQN_CORE(300)
-    x.run()
+    x.test()
+    #x.run()
